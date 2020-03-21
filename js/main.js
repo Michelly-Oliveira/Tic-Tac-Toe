@@ -1,6 +1,8 @@
 // Get some elements that will be necessary
 const boardContainer = document.querySelector('#board-container');
+const restartBtn = document.querySelector('#restart');
 let msg = document.querySelector('#msg');
+let displayInfo = document.querySelector('#display-info');
 let pieces = document.querySelectorAll('#piece');
 
 // Board related variables
@@ -13,6 +15,9 @@ window.onload = function() {
     
     // Listen for a click on the board pieces
     pieces.forEach(piece => piece.addEventListener('click', handleClick));
+
+    // Listen for a click on the restart button
+    restartBtn.addEventListener('click', restartGame);
 }
 
 function createBoardPieces() {
@@ -20,8 +25,7 @@ function createBoardPieces() {
         board[i] = {
             // Connect the array with the elements on the screen through the index
             index: i,
-            content: '',
-            occupied: false
+            content: ''
         };
     }
 }
@@ -35,12 +39,16 @@ function handleClick(e) {
     if(isPieceAvailable(boardPiece)) {
         // Update the object
         boardPiece.content = 'X';
+        // pieceElement.classList.add('active');
         boardPiece.occupied = true;
         // Display on screen
         pieceElement.innerHTML = 'X';
     } else {
-        console.log('Place is taken. Choose again');
+        displayInfo.innerHTML = 'Place is taken. Choose again';
+        return;
     }
+
+    displayInfo.innerHTML = 'Click to choose a place';
 
     // Check end of the game
     if(isGameOver()) {
@@ -72,8 +80,6 @@ function computerMove() {
     } else {
         computerMove();
     }
-    
-    // When all places are taken need to stop the computer move
 }
 
 function isGameOver() {
@@ -81,8 +87,8 @@ function isGameOver() {
     for(let i = 0; i < 9; i += 3) {
         if(board[i].content == board[i+1].content && board[i].content == board[i+2].content && board[i].content != '') {
             boardContainer.style.display = 'none';
-            msg.innerHTML = 'Row won';
-            console.log('Row complete');
+            restartBtn.style.display = 'block';
+            msg.innerHTML = `${board[i].content} won!`;
             return true;
         }
     }
@@ -91,8 +97,8 @@ function isGameOver() {
     for(let i = 0; i < 3; i++) {
         if(board[i].content == board[i+3].content && board[i].content == board[i+6].content && board[i].content != '') {
             boardContainer.style.display = 'none';
-            msg.innerHTML = 'Column won';
-            console.log('Column complete');
+            restartBtn.style.display = 'block';
+            msg.innerHTML = `${board[i].content} won!`;
             return true;
         }
     }
@@ -100,8 +106,8 @@ function isGameOver() {
     // Check if someone completed a diagonal
     if( (board[0].content == board[4].content && board[0].content == board[8].content && board[0].content != '') || (board[2].content == board[4].content && board[2].content == board[6].content && board[2].content != '') ) {
         boardContainer.style.display = 'none';
-        msg.innerHTML = 'Diagonal won';
-        console.log('Diagonal complete');
+        restartBtn.style.display = 'block';
+        msg.innerHTML = `${board[4].content} won!`;
         return true;
     }
 
@@ -114,14 +120,27 @@ function isGameOver() {
 
     // All places are taken and no one won(all the tests above failed) - tie
     boardContainer.style.display = 'none';
+    restartBtn.style.display = 'block';
     msg.innerHTML = 'GAME OVER!';
     return true;
 } 
 
 function isPieceAvailable(piece) {
-    return piece.occupied == false ? true : false;
+    return piece.content == '' ? true : false;
 }
 
 function randomRange(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function restartGame() {
+    for(let i = 0; i < BOARD_LENGTH; i++) {
+        board[i].content = '';
+        pieces[i].innerHTML = '';
+    }
+
+
+    boardContainer.style.display = 'grid';
+    restartBtn.style.display = 'none';
+    msg.innerHTML = '';
 }
