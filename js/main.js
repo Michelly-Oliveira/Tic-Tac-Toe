@@ -1,7 +1,7 @@
 // Get some elements that will be necessary
 const boardContainer = document.querySelector('#board-container');
 const restartBtn = document.querySelector('#restart');
-let msg = document.querySelector('#msg');
+let endGameMsg = document.querySelector('#msg');
 let displayInfo = document.querySelector('#display-info');
 let pieces = document.querySelectorAll('#piece');
 
@@ -9,7 +9,7 @@ let pieces = document.querySelectorAll('#piece');
 let board = [];
 const BOARD_LENGTH = 9;
 
-window.onload = function () {
+window.onload = () => {
 	// Create the board pieces
 	createBoardPieces();
 
@@ -31,7 +31,12 @@ function createBoardPieces() {
 }
 
 function handleClick(e) {
-	const pieceElement = e.target;
+	// Stop player from playing while the computer is choosing
+	if (displayInfo.innerHTML === 'Computer is choosing a place') {
+		return;
+	}
+
+	const screenPieceElement = e.target;
 	const boardPiece = board[this.dataset.index];
 
 	// Check if the piece is available, if it is, place the 'X' there
@@ -39,16 +44,12 @@ function handleClick(e) {
 	if (isPieceAvailable(boardPiece)) {
 		// Update the object
 		boardPiece.content = 'X';
-		// pieceElement.classList.add('active');
-		boardPiece.occupied = true;
 		// Display on screen
-		pieceElement.innerHTML = 'X';
+		screenPieceElement.innerHTML = 'X';
 	} else {
 		displayInfo.innerHTML = 'Place is taken. Choose again';
 		return;
 	}
-
-	displayInfo.innerHTML = 'Click to choose a place';
 
 	// Check end of the game
 	if (isGameOver()) {
@@ -58,11 +59,6 @@ function handleClick(e) {
 	// Computer move
 	displayInfo.innerHTML = 'Computer is choosing a place';
 	setTimeout(computerMove, 1000);
-
-	// Check end of the game
-	if (isGameOver()) {
-		return;
-	}
 }
 
 function computerMove() {
@@ -75,9 +71,13 @@ function computerMove() {
 	if (isPieceAvailable(boardPiece)) {
 		// Update the object
 		boardPiece.content = 'O';
-		boardPiece.occupied = true;
 		// Display on the screen
 		pieceElement.innerHTML = 'O';
+
+		// Check end of the game
+		isGameOver();
+
+		// Tell the player to choose a place
 		displayInfo.innerHTML = 'Click to choose a place';
 	} else {
 		computerMove();
@@ -85,6 +85,8 @@ function computerMove() {
 }
 
 function isGameOver() {
+	console.log('hey');
+
 	// Check if someone completed a row
 	for (let i = 0; i < 9; i += 3) {
 		if (
@@ -92,9 +94,7 @@ function isGameOver() {
 			board[i].content == board[i + 2].content &&
 			board[i].content != ''
 		) {
-			boardContainer.style.display = 'none';
-			restartBtn.style.display = 'block';
-			msg.innerHTML = `${board[i].content} won!`;
+			gameOverStyles(board[i].content);
 			return true;
 		}
 	}
@@ -106,9 +106,7 @@ function isGameOver() {
 			board[i].content == board[i + 6].content &&
 			board[i].content != ''
 		) {
-			boardContainer.style.display = 'none';
-			restartBtn.style.display = 'block';
-			msg.innerHTML = `${board[i].content} won!`;
+			gameOverStyles(board[i].content);
 			return true;
 		}
 	}
@@ -122,9 +120,7 @@ function isGameOver() {
 			board[2].content == board[6].content &&
 			board[2].content != '')
 	) {
-		boardContainer.style.display = 'none';
-		restartBtn.style.display = 'block';
-		msg.innerHTML = `${board[4].content} won!`;
+		gameOverStyles(board[4].content);
 		return true;
 	}
 
@@ -136,9 +132,7 @@ function isGameOver() {
 	}
 
 	// All places are taken and no one won(all the tests above failed) - tie
-	boardContainer.style.display = 'none';
-	restartBtn.style.display = 'block';
-	msg.innerHTML = 'GAME OVER!';
+	gameOverStyles();
 	return true;
 }
 
@@ -150,6 +144,13 @@ function randomRange(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function gameOverStyles(whoWon = '') {
+	boardContainer.style.display = 'none';
+	restartBtn.style.display = 'block';
+	// If we don't pass who won the game use 'GAME OVER' = tie
+	endGameMsg.innerHTML = whoWon !== '' ? `${whoWon} won!` : 'GAME OVER!';
+}
+
 function restartGame() {
 	for (let i = 0; i < BOARD_LENGTH; i++) {
 		board[i].content = '';
@@ -158,5 +159,5 @@ function restartGame() {
 
 	boardContainer.style.display = 'grid';
 	restartBtn.style.display = 'none';
-	msg.innerHTML = '';
+	endGameMsg.innerHTML = '';
 }
